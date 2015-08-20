@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var express = require('express');
 var app = express();
-var Session = require('./sessionModel.js');
+var Session = require('../models/session.js');
 
 // authentication middleware that checks to see if the score we've received is in the valid range before posting scores to the Game collection
 exports.checkSession = function(req, res, next){
