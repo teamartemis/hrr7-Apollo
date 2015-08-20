@@ -1,9 +1,9 @@
 {
-  "name": "apollo",
+  "name": "speedcoder",
   "version": "1.0.0",
   "homepage": "",
   "authors": [],
-  "description": "a typing game for programmers",
+  "description": "Multiplayer typing game for programmers",
   "main": "client/index.html",
   "license": "MIT",
   "ignore": [

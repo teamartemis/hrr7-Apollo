@@ -1,21 +1,21 @@
 {
-  "name": "hrr7-apollo",
+  "name": "speedcoder",
   "version": "1.0.0",
-  "description": "Typing game for programmers",
+  "description": "Multiplayer typing game for programmers",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nickbalestra/hrr7-Apollo.git"
+    "url": "git+https://github.com/teamartemis/speedcoder.git"
   },
-  "author": "apollo team",
+  "author": "Team Artemis",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nickbalestra/hrr7-Apollo/issues"
+    "url": "https://github.com/teamartemis/speedcoder/issues"
   },
-  "homepage": "https://github.com/nickbalestra/hrr7-Apollo#readme",
+  "homepage": "https://github.com/teamartemis/speedcoder/#readme",
   "devDependencies": {
     "angular": "^1.4.3",
     "angular-ui-router": "^0.2.15",
