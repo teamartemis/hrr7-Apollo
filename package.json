@@ -16,7 +16,7 @@
     "url": "https://github.com/teamartemis/speedcoder/issues"
   },
   "homepage": "https://github.com/teamartemis/speedcoder/#readme",
-  "devDependencies": {
+  "dependencies": {
     "angular": "^1.4.3",
     "angular-ui-router": "^0.2.15",
     "body-parser": "~1.13.3",
