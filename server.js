@@ -21,6 +21,20 @@ app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse applica
 app.use(methodOverride());
 app.use('/api', api);
 
+// Socket.IO
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+
+io.on('connection', function(socket) {
+  // unique id for socket looks something like this "lvkiH50mgbBqAG_2AAAC"
+  console.log('a user connected: ', socket.id);
+
+  // disconnect
+  socket.on('disconnect', function() {
+    console.log('user disconnected');
+  });
+});
+
 var port = process.env.PORT || 8080;
-app.listen(port);
+server.listen(port);
 console.log("App listening on port " + port);
