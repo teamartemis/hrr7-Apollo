@@ -19,7 +19,7 @@ module.exports = function(config) {
       'client/bower_components/angular/angular.js',
       'client/bower_components/angular-mocks/angular-mocks.js',
       'client/bower_components/angular-ui-router/release/angular-ui-router.js',
-      'tests/**/*.js',
+      'tests/client/**/*.js',
       'client/game/**/*.js',
       'client/leaderboard/**/*.js',
       'client/app.js'
