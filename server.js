@@ -21,60 +21,8 @@ app.use(bodyParser.json({ type: 'application/vnd.api+json' })); // parse applica
 app.use(methodOverride());
 app.use('/api', api);
 
-// Socket.IO
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
-
-io.on('connection', function(socket) {
-  // unique id for socket looks something like this "lvkiH50mgbBqAG_2AAAC"
-  console.log('a user connected: ', socket.id);
-
-  socket.on('player:ready', function() {
-    // store socket.id and socket somewhere
-    // check if another player is ready & waiting
-      // if so, pair them together, and emit 'game:start' to both
-      socket.emit('game:start');
-      // get opponent socket object, then opponentSocket.emit('game:start');
-  });
-
-  socket.on('player:progress', function(progress) {
-    // store player progress somewhere?
-    // get opponent socket object, opponentSocket
-    // determine if ending conditions are met, if so
-      // socket.emit('game:win'); // or socket.emit('game:lose')
-      // opponentSocket.emit('game:lose') // or opponentSocket.emit('game:win')
-    // if not, just update opponent on player's progress
-      // opponentSocket.emit('opponent:progress', progress)
-  });
-
-  socket.on('player:timeup', function() {
-    // get opponent socket object
-    // if player is ahead
-      // socket.emit('game:wait');
-      // need to store level for comparison when opponent reaches the same level
-    // if player is behind
-      // socket.emit('game:lose');
-      // opponentSocket.emit('game:win');
-  });
-
-  //--- for testing -- delete when ready
-  var fakeOpponentLevel = 1;
-  var fakeOpponentScore = 0;
-  setInterval(function() {
-    socket.emit('opponent:progress', {
-      level: fakeOpponentLevel,
-      score: fakeOpponentScore
-    });
-    fakeOpponentScore += 100;
-    fakeOpponentLevel += 1;
-  }, 5000);
-  //---
-
-  // disconnect
-  socket.on('disconnect', function() {
-    console.log('user disconnected');
-  });
-});
+var io = require('./server/socket')(server);
 
 var port = process.env.PORT || 8080;
 server.listen(port);
