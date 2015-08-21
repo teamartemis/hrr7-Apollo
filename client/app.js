@@ -1,4 +1,4 @@
-angular.module('app', ['ui.router', 'app.game', 'app.leaderboard', 'app.setInitials', 'ui.codemirror'])
+angular.module('app', ['ui.router', 'app.game', 'app.leaderboard', 'app.setInitials', 'app.socket', 'ui.codemirror'])
 
 .config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider){
 

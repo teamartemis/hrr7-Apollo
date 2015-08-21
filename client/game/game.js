@@ -1,6 +1,5 @@
 angular.module('app.game', [])
-  .controller('gameController', function($scope, $timeout, $interval, $http, scoreFactory, sessionFactory, levelFactory){
-
+  .controller('gameController', function($scope, $timeout, $interval, $http, scoreFactory, sessionFactory, levelFactory, Socket){
 
     //////////
     // SET UP
@@ -28,18 +27,6 @@ angular.module('app.game', [])
       $scope.timeLimit = $scope.challengeFixtures[$scope.level]['timeLimit'];
       levelFactory.totalLevel++;
     };
-
-    // gets the challenge content from the server for the first batch
-    // and saves the content in the first level to scope variables that the DOM can access
-    $http.get('/api/challengeBatch/0')
-    .then(function(res){
-      $scope.batch = 0;
-      setNewBatch(res);
-      startNewLevel();
-    });
-
-    // timer setup
-    var stop;
     var startTimer = function(timeLimit){
       stop = $interval(function(){
         $scope.timeLimit--;
@@ -54,9 +41,54 @@ angular.module('app.game', [])
         }
       }, 1000);
     };
-    // start the timer for the first challenge
-    startTimer();
 
+    // Holds opponents data, which will be updated through socket communication
+    $scope.opponent = {};
+
+    // Set listener on Socket
+    Socket.on('game:start', function() {
+      console.log('game:start event received');
+      $scope.startGame();
+    })
+    Socket.on('game:win', function() {
+      console.log('game:win event received');
+    });
+    Socket.on('game:lose', function() {
+      console.log('game:lose event received');
+    });
+    Socket.on('opponent:progress', function(data) {
+      console.log('Received opponent progress from server: ', data);
+      $scope.opponent.score = data.score;
+      $scope.opponent.level = data.level;
+    });
+    Socket.on('disconnect', function() {
+      console.log('Client has disconnected from the server');
+    });
+
+    // Will need to destroy listener
+    // $scope.$on('$destroy', function (event) {
+    //     // Socket.removeAllListeners();
+    //     // or something like
+    //     // Socket.removeListener(this);
+    // });
+    
+    Socket.emit('player:ready');
+
+    $scope.startGame = function() {
+      // gets the challenge content from the server for the first batch
+      // and saves the content in the first level to scope variables that the DOM can access
+      $http.get('/api/challengeBatch/0')
+      .then(function(res){
+        $scope.batch = 0;
+        setNewBatch(res);
+        startNewLevel();
+      });
+
+      // timer setup
+      var stop;
+      // start the timer for the first challenge
+      startTimer();
+    }
 
     //////////////////////////
     // PLAYER SOLUTION CHECKS
@@ -104,6 +136,14 @@ angular.module('app.game', [])
       }).then(function(res){
         // set the factory score variable to the score returned
         scoreFactory.totalScore = res.data;
+
+        // Send level and total score data through sockets
+        // Ideally, we will move from AJAX calls completely to sockets
+        // as this data is being sent twice
+        Socket.emit('player:progress', {
+          level: $scope.level,
+          score: scoreFactory.totalScore
+        });
       });
       // after a pause
       $timeout(function(){
