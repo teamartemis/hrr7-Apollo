@@ -14,18 +14,16 @@ describe('Unit: gameController', function() {
     });
   }));
 
-  it('should have totalScore set to 0',
-    function() {
+  it('should have totalScore set to 0', function() {
       scope.totalScore.totalScore.should.equal(0);
   });
 
-  it('should have showMessage set to false',
-    function() {
+  it('should have showMessage set to false', function() {
       scope.showMessage.should.equal(false);
   });
 
-  it('should have gameOver set to false',
-    function() {
+  it('should have gameOver set to false', function() {
       scope.gameOver.should.equal(false);
   });
-})
+
+});
