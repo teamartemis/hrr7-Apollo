@@ -21,9 +21,10 @@ angular.module('app.game', [])
     $scope.incorrect = false;
     $scope.challenges = [];
     $scope.timer;
+    $scope.playing = false;
 
     $scope.startGame = function() {
-      $scope.batch = 0;
+      $scope.playing = true;
       return $scope.loadChallenge().then($scope.startTimer);
     };
 
@@ -33,6 +34,11 @@ angular.module('app.game', [])
           $scope.levelOffset += $scope.level;
           $scope.challenges = res.data[0].batch;
           $scope.batch++;
+        } else {
+          Socket.emit('player:gameComplete', {
+            score: $scope.score
+          });
+          $scope.playing = false;
         }
       });
     };
@@ -65,24 +71,27 @@ angular.module('app.game', [])
         if ($scope.timeLimit === 0) {
           $scope.editorOptions = {readOnly: "nocursor"};
           $interval.cancel($scope.timer);
-          $scope.gameOver = true;
+
+          //$scope.gameOver = true;
+          // Send a timeup event
+          Socket.emit('player:timeup', {
+
+          });
+          $scope.playing = false;
         }
       }, 1000);
     };
 
     $scope.endLevel = function() {
       $interval.cancel($scope.timer);
-      $scope.submitMessage = 'You are amazing!'
-      $scope.showMessage = true;
       $scope.score += $scope.timeLimit;
       Socket.emit('player:progress', {
         level: $scope.level,
-        score: $scope.score
+        score: $scope.score,
+        position: $scope.playerPosition,
+        levelComplete: true
       });
-      // after a pause
-      $timeout(function() {
-        $scope.loadChallenge().then($scope.startTimer);
-      }, 1500);
+      $scope.playing = false;
     };
 
     Socket.on('game:start', function() {
@@ -97,10 +106,7 @@ angular.module('app.game', [])
     });
     Socket.on('opponent:progress', function(data) {
       console.log('Received opponent progress from server: ', data);
-      //$scope.opponent.score = data.score;
-      //$scope.opponent.level = data.level;
-      $scope.opponentPosition++;
-      $scope.displayOpponent();
+      $scope.setOpponentPosition(data.position);
     });
     Socket.on('disconnect', function() {
       console.log('Client has disconnected from the server');
@@ -113,7 +119,6 @@ angular.module('app.game', [])
     //     // Socket.removeListener(this);
     // });
     Socket.emit('player:ready');
-    $scope.startGame();
 
     $scope.onUserPositionChange = function(pos) {
       if(pos === $scope.challenge.length) {
@@ -150,6 +155,11 @@ angular.module('app.game', [])
         var solution = $scope.playerSolution.join('');
         if ($scope.checkSolution(solution)) {
           $scope.playerPosition = solution.length;
+          Socket.emit('player:progress', {
+            level: $scope.level,
+            score: $scope.score,
+            position: $scope.playerPosition
+          });
           $scope.onUserPositionChange($scope.playerPosition);
         }
         $scope.render();
@@ -195,3 +205,4 @@ angular.module('app.game', [])
       $scope.render();
     };
   });
+
