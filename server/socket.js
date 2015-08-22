@@ -1,25 +1,29 @@
+var socketio = require('socket.io');
+
+// ----- helpers
 var challenger = null;
-var players = {}; // hash of key = socket.id, value = { socket, score, level, timeup }
-var room = 0;
+var players = {}; // hash of key = socket.id, value = { socket, score, level, timeup, levelComplete, gameComplete }
+var nextRoom = 0;
+
 
 
 module.exports = function(server) {
-  var io = require('socket.io')(server);
+  var io = socketio(server);
 
-  // ----- helpers
+  // helpers
   var getOpponentSocket = function(socket) {
     var room = socket.rooms[1];
     if( room === undefined ) return; // if no room, then no match is going on
 
-    var opponent;
+    var opponentSocket;
     // this is an array of all clients in the room
     Object.keys(io.nsps['/'].adapter.rooms[room]).forEach(function(id) {
       if( socket.id !== id ) {
-        opponent = players[id].socket;
+        opponentSocket = players[id].socket;
       }
     });
-    return opponent;
-  }
+    return opponentSocket;
+  };
 
   var endGame = function(socket, win) {
     var opponent = getOpponentSocket(socket);
@@ -29,8 +33,22 @@ module.exports = function(server) {
     opponent.emit('game:'+ (win ? 'lose' : 'win'));
     delete players[opponent.id];
     delete players[socket.id];
-  }
+  };
 
+  // player and opponent are objects from players hash
+  var startNextLevel = function(socket) {
+    var player = players[socket.id];
+    var opponent = players[getOpponentSocket(socket).id];
+    player.level += 1;
+    opponent.level += 1;
+    player.levelComplete = false;
+    opponent.levelComplete = false;
+    io.to(socket.rooms[1]).emit('game:start', {
+      level: player.level
+    });
+  };
+
+  // events
   io.on('connection', function(socket) {
     // unique id for socket looks something like this "lvkiH50mgbBqAG_2AAAC"
     console.log('a user connected: ', socket.id);
@@ -41,15 +59,20 @@ module.exports = function(server) {
         socket: socket,
         score: 0,
         level: 0,
-        timeup: false
+        timeup: false,
+        levelComplete: false,
+        gameComplete: false
       };
 
       if( challenger ) {
-        socket.join(room);
-        challenger.join(room);
-        io.to(room).emit('game:start');
+        socket.join(nextRoom);
+        challenger.join(nextRoom);
 
-        room += 1;
+        io.to(nextRoom).emit('game:start', {
+          level: 0
+        });
+
+        nextRoom += 1;
         challenger = null;
       } else {
         challenger = socket;
@@ -59,43 +82,43 @@ module.exports = function(server) {
     // client periodic update on level/score
     socket.on('player:progress', function(progress) {
       var player = players[socket.id];
-      player.level = progress.level;
-      player.score = progress.score;
+      player.levelComplete = progress.levelComplete;
       var opponent = players[getOpponentSocket(socket).id];
-      console.log('player:progress received');
-
-      // if opponent time up and player is ahead of opponent
-      if( opponent.timeup && player.level >= opponent.level ) {
-        return endGame(socket, true); // player wins
+      if( player.levelComplete ) {
+        console.log('player level complete');
       }
+
+      if( player.levelComplete && opponent.levelComplete ) {
+        console.log('next level!');
+        startNextLevel(socket);
+      }
+
       opponent.socket.emit('opponent:progress', progress);
     });
 
     // player is done with all levels
-    socket.on('player:done', function() {
-      endGame(socket, true); // first to finish wins
+    socket.on('player:gameComplete', function(result) {
+      var player = players[socket.id];
+      var opponent = players[getOpponentSocket(socket).id];
+      player.gameComplete = true;
+      player.score = result.score;
+
+      if( player.gameComplete && opponent.gameComplete ) {
+        return endGame(socket, player.score > opponent.score); // highest score wins
+      }
     });
 
     // player ran out of time
     socket.on('player:timeup', function() {
+      // start both players on next level
       var player = players[socket.id];
-      player.timeup = true;
       var opponent = players[getOpponentSocket(socket).id];
 
-      // if on the same level as opponent and opponent also timeup
-      if( player.level === opponent.level && opponent.timeup ) {
-        return endGame(socket, player.score > opponent.score); // higher score is winner
+      if( opponent.gameComplete ) {
+        return endGame(socket, player.score > opponent.score);
       }
 
-      // if ahead of opponent
-      if( player.level >= opponent.level ) {
-        return socket.emit('game:wait'); // wait
-      }
-
-      // if behind opponent
-      if( player.level < opponent.level ) {
-        return endGame(socket, false); // player loses
-      }
+      startNextLevel(socket);
     });
 
     // disconnect
@@ -106,23 +129,8 @@ module.exports = function(server) {
       endGame(socket, false); // end the game if there is one, opponent wins
       console.log('user disconnected');
     });
-
-    //--- for testing -- delete when ready
-    /*
-    var fakeOpponentLevel = 1;
-    var fakeOpponentScore = 0;
-    setInterval(function() {
-      socket.emit('opponent:progress', {
-        level: fakeOpponentLevel,
-        score: fakeOpponentScore
-      });
-      fakeOpponentScore += 100;
-      fakeOpponentLevel += 1;
-    }, 5000);
-    */
-    //---
   });
 
   return io;
-}
+};
 
