@@ -77,4 +77,8 @@ form {
     user-select: none;
 }
 
+.cm-opponent {
+  background-color: red;
+}
+
 /*# sourceMappingURL=style.css.map */

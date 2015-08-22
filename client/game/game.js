@@ -17,6 +17,7 @@ angular.module('app.game', [])
     $scope.playerPosition = 0;
     $scope.opponentPosition = 0;
     $scope.showMessage = false;
+    $scope.incorrect = false;
     $scope.playerSolution = '';
     $scope.challenges = [];
     $scope.timer;
@@ -59,10 +60,10 @@ angular.module('app.game', [])
       if(playerSolution === $scope.challenge){
         $scope.endLevel();
       } else if ($scope.challenge.startsWith(playerSolution)) {
-        $scope.incorrectBool = false;
+        $scope.incorrect = false;
         $scope.showMessage = false;
       } else {
-        $scope.incorrectBool = true;
+        $scope.incorrect = true;
         $scope.submitMessage = 'You typed an incorrect letter!'
         $scope.showMessage = true;
       }
@@ -109,7 +110,8 @@ angular.module('app.game', [])
       console.log('Received opponent progress from server: ', data);
       //$scope.opponent.score = data.score;
       //$scope.opponent.level = data.level;
-      //$scope.displayOpponent();
+      $scope.opponentPosition++;
+      $scope.displayOpponent();
     });
     Socket.on('disconnect', function() {
       console.log('Client has disconnected from the server');
@@ -127,8 +129,20 @@ angular.module('app.game', [])
       $scope._editor = _editor;
     };
 
-    $scope.displayOpponent = function(pos) {
+    $scope.opponentOverlay = {
+      token: function(stream, state) {
+        var char = stream.next();
+        if ($scope.opponentPosition > stream.column()) {
+          return 'opponent';
+        }
+        return null;
+      }
+    };
 
+    $scope.displayOpponent = function(pos) {
+      //$scope.opponentPosition = pos;
+      $scope._editor.removeOverlay($scope.opponentOverlay);
+      $scope._editor.addOverlay($scope.opponentOverlay);
     };
 
     $scope.startGame();
