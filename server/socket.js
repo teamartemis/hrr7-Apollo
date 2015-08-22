@@ -1,34 +1,35 @@
-// ----- helpers
 var challenger = null;
 var players = {}; // hash of key = socket.id, value = { socket, score, level, timeup }
 var room = 0;
 
-var getOpponentSocket = function(socket) {
-  var room = socket.rooms[1];
-  if( room === undefined ) return; // if no room, then no match is going on
-
-  var opponent;
-  // this is an array of all clients in the room
-  Object.keys(io.nsps['/'].adapter.rooms[room]).forEach(function(id) {
-    if( socket.id !== id ) {
-      opponent = players[id].socket;
-    }
-  });
-  return opponent;
-}
-
-var endGame = function(socket, win) {
-  var opponent = getOpponentSocket(socket);
-  if( !opponent ) return;
-
-  socket.emit('game:'+ (win ? 'win' : 'lose'));
-  opponent.emit('game:'+ (win ? 'lose' : 'win'));
-  delete players[opponent.id];
-  delete players[socket.id];
-}
 
 module.exports = function(server) {
   var io = require('socket.io')(server);
+
+  // ----- helpers
+  var getOpponentSocket = function(socket) {
+    var room = socket.rooms[1];
+    if( room === undefined ) return; // if no room, then no match is going on
+
+    var opponent;
+    // this is an array of all clients in the room
+    Object.keys(io.nsps['/'].adapter.rooms[room]).forEach(function(id) {
+      if( socket.id !== id ) {
+        opponent = players[id].socket;
+      }
+    });
+    return opponent;
+  }
+
+  var endGame = function(socket, win) {
+    var opponent = getOpponentSocket(socket);
+    if( !opponent ) return;
+
+    socket.emit('game:'+ (win ? 'win' : 'lose'));
+    opponent.emit('game:'+ (win ? 'lose' : 'win'));
+    delete players[opponent.id];
+    delete players[socket.id];
+  }
 
   io.on('connection', function(socket) {
     // unique id for socket looks something like this "lvkiH50mgbBqAG_2AAAC"
@@ -61,6 +62,7 @@ module.exports = function(server) {
       player.level = progress.level;
       player.score = progress.score;
       var opponent = players[getOpponentSocket(socket).id];
+      console.log('player:progress received');
 
       // if opponent time up and player is ahead of opponent
       if( opponent.timeup && player.level >= opponent.level ) {
@@ -106,6 +108,7 @@ module.exports = function(server) {
     });
 
     //--- for testing -- delete when ready
+    /*
     var fakeOpponentLevel = 1;
     var fakeOpponentScore = 0;
     setInterval(function() {
@@ -116,6 +119,7 @@ module.exports = function(server) {
       fakeOpponentScore += 100;
       fakeOpponentLevel += 1;
     }, 5000);
+    */
     //---
   });
 

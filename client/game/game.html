@@ -1,28 +1,31 @@
 <div ng-controller="gameController">
-  <header class="game-header">
+  <div class="waiting" ng-if="!playing">
+    <p>Waiting...</p>
+  </div>
+  <div class="gameOver" ng-if="gameOver"><p>GAME OVER</p></div>
+  <div class="gameWon" ng-if="gameWon"><p>YOU WIN</p></div>
+  <div class="playing" ng-if="playing">
+    <header class="game-header">
+      <div>
+        <p>Current Level</p>
+        <p class='number'>{{ level }}</p>
+      </div>
+      <div>
+        <p>Total Score</p>
+        <p class='number'>{{ score }}</p>
+      </div>
+      <div>
+        <p>Time Left</p>
+        <p class='number'>{{ timeLimit }}</p>
+      </div>
+    </header>
     <div>
-      <p>Current Level</p>
-      <p class='number'>{{ level }}</p>
+      <p id="gameContent" class="noselect">{{ challenge }}</p>
+      <form>
+        <textarea ui-codemirror="{onLoad: codemirrorLoaded}" ui-codemirror-opts="editorOptions"
+          cols="60" rows="10" ng-disabled="gameOver"></textarea>
+        <span ng-if="showMessage">{{ submitMessage }}</span>
+      </form>
     </div>
-    <div>
-      <p>Total Score</p>
-      <p class='number'>{{ score }}</p>
-    </div>
-    <div>
-      <p>Time Left</p>
-      <p class='number'>{{ timeLimit }}</p>
-    </div>
-  </header>
-
-  <div>
-    <div class="gameOver" ng-if="gameOver"><p>GAME OVER</p></div>
-    <div class="gameWon" ng-if="gameWon"><p>YOU WIN</p></div>
-
-    <p id="gameContent" class="noselect">{{ challenge }}</p>
-    <form>
-      <textarea ui-codemirror="{onLoad: codemirrorLoaded}" ui-codemirror-opts="editorOptions"
-        cols="60" rows="10" ng-disabled="gameOver"></textarea>
-      <span ng-if="showMessage">{{ submitMessage }}</span>
-    </form>
   </div>
 </div>
