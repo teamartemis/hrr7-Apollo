@@ -20,10 +20,8 @@
 
     <p id="gameContent" class="noselect">{{ challenge }}</p>
     <form>
-      <!-- Stretch idea: cols and rows could be added dynamically based on gameContent -->
-      <textarea ui-codemirror="{onLoad: codemirrorLoaded}" ui-codemirror-opts="editorOptions" ng-class="{box: incorrectBool}" id="gameInput" ng-model="playerSolution" name="gameInput" cols="60" rows="10" ng-disabled="gameOver" ng-change="checkChar(playerSolution)"></textarea>
-
-      <br>
+      <textarea ui-codemirror="{onLoad: codemirrorLoaded}" ui-codemirror-opts="editorOptions"
+        cols="60" rows="10" ng-disabled="gameOver"></textarea>
       <span ng-if="showMessage">{{ submitMessage }}</span>
     </form>
   </div>
