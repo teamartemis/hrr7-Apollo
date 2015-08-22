@@ -25,29 +25,12 @@ module.exports = function(grunt) {
           singleRun: true
         }
       }
-    },
-
-    sass: {
-      dist: {
-        files: {
-          'client/styles/style.css': 'client/styles/style.scss'
-        }
-      }
-    },
-
-    watch: {
-      css: {
-        files: 'client/styles/**/*.scss',
-        tasks: ['sass'],
-      },
     }
   });
 
   grunt.loadNpmTasks('grunt-karma');
-  grunt.loadNpmTasks('grunt-contrib-sass');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('style', ['sass', 'watch']);
   grunt.registerTask('tests', ['karma']);
 
 };
