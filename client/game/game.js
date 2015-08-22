@@ -131,9 +131,23 @@ angular.module('app.game', [])
      * Interface through onUserPositionChange and setOpponentPosition.
      */
 
+    var opponentOverlay = {
+      token: function(stream, state) {
+        var char = stream.next();
+        if ($scope.playerPosition < $scope.opponentPosition &&
+            $scope.playerPosition > stream.column()) {
+          return null;
+        }
+        if ($scope.opponentPosition > stream.column()) {
+          return 'opponent';
+        }
+        return null;
+      }
+    };
+
     $scope.codemirrorLoaded = function(_editor){
       $scope._editor = _editor;
-      _editor.on('beforeChange', $scope.solutionChange);
+      _editor.on('beforeChange', $scope.playerInputChange);
     };
 
     /*
@@ -143,7 +157,7 @@ angular.module('app.game', [])
      * 'setValue'. We can prevent infinite recursion by checking that the
      * value was set by the $scope.render function.
      */
-    $scope.solutionChange = function(instance, change) {
+    $scope.playerInputChange = function(instance, change) {
       if (change.origin !== 'setValue') {
         change.cancel();
         if (change.origin === '+input') {
@@ -166,6 +180,11 @@ angular.module('app.game', [])
       }
     };
 
+    $scope.setOpponentPosition = function(pos) {
+      $scope.opponentPosition = pos;
+      $scope.render();
+    };
+
     /*
      * Check solution updates the ui when the player made a typo. If the
      * challange starts with solution then we return true. Check solution
@@ -184,25 +203,14 @@ angular.module('app.game', [])
       }
     };
 
-    var opponentOverlay = {
-      token: function(stream, state) {
-        var char = stream.next();
-        if ($scope.opponentPosition > stream.column()) {
-          return 'opponent';
-        }
-        return null;
-      }
-    };
-
     $scope.render = function() {
-      $scope._editor.doc.setValue($scope.playerSolution.join(''));
+      var text = $scope.playerSolution.join('');
+      if ($scope.opponentPosition > $scope.playerSolution.length) {
+        text += $scope.challenge.substring($scope.playerSolution.length, $scope.opponentPosition);
+      }
+      $scope._editor.doc.setValue(text);
+      $scope._editor.doc.setCursor({line: 0, ch: $scope.playerSolution.length});
       $scope._editor.removeOverlay(opponentOverlay);
       $scope._editor.addOverlay(opponentOverlay);
-    };
-
-    $scope.setOpponentPosition = function(pos) {
-      $scope.opponentPosition = pos;
-      $scope.render();
-    };
+    }
   });
-
