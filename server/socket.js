@@ -2,17 +2,28 @@ var socketio = require('socket.io');
 
 // ----- helpers
 var challenger = null;
-var players = {}; // hash of key = socket.id, value = { socket, score, level, timeup, levelComplete, gameComplete }
+
+// hash with key = socket.id
+/*
+value = {
+  socket,
+  score,
+  level,
+  room,
+  timeup,
+  levelComplete,
+  gameComplete
+}
+*/
+var players = {};
 var nextRoom = 0;
-
-
 
 module.exports = function(server) {
   var io = socketio(server);
 
   // helpers
-  var getOpponentSocket = function(socket) {
-    var room = socket.rooms[1];
+  var getOpponentSocket = function(socket, room) { // optional room parameter
+    room = socket.rooms[1] || room;
     if( room === undefined ) return; // if no room, then no match is going on
 
     var opponentSocket;
@@ -25,8 +36,8 @@ module.exports = function(server) {
     return opponentSocket;
   };
 
-  var endGame = function(socket, win) {
-    var opponent = getOpponentSocket(socket);
+  var endGame = function(socket, win, room) { // optional room parameter
+    var opponent = getOpponentSocket(socket, room);
     if( !opponent ) return;
 
     socket.emit('game:'+ (win ? 'win' : 'lose'));
@@ -41,8 +52,7 @@ module.exports = function(server) {
     var opponent = players[getOpponentSocket(socket).id];
     player.level += 1;
     opponent.level += 1;
-    player.levelComplete = false;
-    opponent.levelComplete = false;
+    player.levelComplete = opponent.levelComplete = false;
     io.to(socket.rooms[1]).emit('game:start', {
       level: player.level
     });
@@ -59,6 +69,7 @@ module.exports = function(server) {
         socket: socket,
         score: 0,
         level: 0,
+        room: undefined,
         timeup: false,
         levelComplete: false,
         gameComplete: false
@@ -67,6 +78,7 @@ module.exports = function(server) {
       if( challenger ) {
         socket.join(nextRoom);
         challenger.join(nextRoom);
+        players[socket.id].room = players[challenger.id].room = nextRoom;
 
         io.to(nextRoom).emit('game:start', {
           level: 0
@@ -126,7 +138,10 @@ module.exports = function(server) {
       if( challenger === socket ) {
         challenger = null;
       }
-      endGame(socket, false); // end the game if there is one, opponent wins
+      // end the game if there is one, opponent wins
+      if( players[socket.id] ) {
+        endGame(socket, false, players[socket.id].room);
+      }
       console.log('user disconnected');
     });
   });
