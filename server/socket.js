@@ -1,4 +1,6 @@
+var _ = require('lodash');
 var socketio = require('socket.io');
+var Challenge = require('./models/challenge.js');
 
 // ----- helpers
 var challenger = null;
@@ -8,7 +10,6 @@ var challenger = null;
 value = {
   socket,
   score,
-  level,
   room,
   timeup,
   levelComplete,
@@ -16,7 +17,7 @@ value = {
 }
 */
 var players = {};
-var nextRoom = 0;
+var nextRoom = 1; // start with a truthy room name
 
 module.exports = function(server) {
   var io = socketio(server);
@@ -24,9 +25,9 @@ module.exports = function(server) {
   // helpers
   var getOpponentSocket = function(socket, room) { // optional room parameter
     room = room || socket.rooms[1];
-    if( room === undefined ) {
-      console.log('room undefined', socket.rooms);
-      return; // if no room, then no match is going on
+    if( !room ) {
+      console.log('no rooms', socket.rooms);
+      return;
     }
 
     var opponentSocket;
@@ -53,11 +54,20 @@ module.exports = function(server) {
   var startNextLevel = function(socket) {
     var player = players[socket.id];
     var opponent = players[getOpponentSocket(socket).id];
-    player.level += 1;
-    opponent.level += 1;
     player.levelComplete = opponent.levelComplete = false;
-    io.to(socket.rooms[1]).emit('game:start', {
-      level: player.level
+    io.to(socket.rooms[1]).emit('game:proceed');
+  };
+
+  // async fetch from DB, and return an array of _num_ challenges in randomized order to cb
+  var fetchChallenges = function(num, callback) {
+    Challenge.find().exec(function(err, data) {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log(data);
+        var random = _.shuffle(data);
+        callback(random.slice(0, num));
+      }
     });
   };
 
@@ -71,27 +81,33 @@ module.exports = function(server) {
       players[socket.id] = {
         socket: socket,
         score: 0,
-        level: 0,
         room: undefined,
         timeup: false,
         levelComplete: false,
         gameComplete: false
       };
 
+      // if a challenger exists
       if( challenger ) {
+        console.log('game start with', socket.id, challenger.id);
         socket.join(nextRoom);
         challenger.join(nextRoom);
         players[socket.id].room = players[challenger.id].room = nextRoom;
 
-        io.to(nextRoom).emit('game:start', {
-          level: 0
-        });
+        fetchChallenges(10, function(challenges) {
+          console.log('randomized levels', challenges);
+          io.to(nextRoom).emit('game:start', {
+            challenges: challenges
+          });
 
-        nextRoom += 1;
-        challenger = null;
-      } else {
-        challenger = socket;
+          nextRoom += 1;
+          challenger = null;
+        });
+        return;
       }
+
+      // if no challenger
+      challenger = socket;
     });
 
     // client periodic update on level/score
@@ -143,6 +159,7 @@ module.exports = function(server) {
       console.log('disconnect from', socket.id);
       if( challenger === socket ) {
         challenger = null;
+        delete players[socket.id];
       }
       // end the game if there is one, opponent wins
       if( players[socket.id] ) {

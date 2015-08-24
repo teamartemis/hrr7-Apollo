@@ -1,7 +1,6 @@
 var router = require('express').Router();
 
 var Game = require('../models/game.js');
-var ChallengeBatch = require('../models/challengeBatch.js');
 var Session = require('../models/session.js');
 
 // MINIMUM OF THE CURRENT 'HIGH SCORES'
@@ -45,19 +44,6 @@ router.get('/leaderboard', function (req, res) {
       res.send(500);
     } else {
       res.json(games);
-    }
-  });
-});
-
-// CHALLENGE BATCH
-// Retrieves batch of Challenges rather than making requests for individual challenges
-router.get('/challengeBatch/:id', function (req, res) {
-  ChallengeBatch.find({id: req.params.id}).exec(function(err, batch) {
-    if (err) {
-      console.error(err);
-      res.send(err);
-    } else {
-      res.json(batch);
     }
   });
 });
