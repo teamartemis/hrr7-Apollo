@@ -85,8 +85,11 @@ form div, form .CodeMirror {
 .cm-string {
   color: navy !important;
 }
-.cm-opponent {
+.cm-opponent-ahead {
   color: red !important;
+}
+.cm-opponent-behind {
+  color: green !important;
 }
 .CodeMirror {
   margin-bottom: 10px !important;
