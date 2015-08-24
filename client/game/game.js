@@ -11,7 +11,6 @@ angular.module('app.game', [])
     $scope.batch = 0;
     $scope.level = -1;
     $scope.score = 0;
-    $scope.levelOffset = 0;
     $scope.challenge = '';
     $scope.timeLimit = 0;
     $scope.playerPosition = 0;
@@ -23,41 +22,16 @@ angular.module('app.game', [])
     $scope.timer;
     $scope.playing = false;
 
-    $scope.startGame = function() {
-      $scope.playing = true;
-      return $scope.loadChallenge().then($scope.startTimer);
-    };
-
-    $scope.loadBatch = function() {
-      return $http.get('/api/challengeBatch/' + $scope.batch).then(function(res) {
-        if (res.data.length) {
-          $scope.levelOffset += $scope.level;
-          $scope.challenges = res.data[0].batch;
-          $scope.batch++;
-        } else {
-          Socket.emit('player:gameComplete', {
-            score: $scope.score
-          });
-          $scope.playing = false;
-        }
-      });
-    };
-
     $scope.loadChallenge = function() {
-      $scope.showMessage = false;
-      var index = ++$scope.level - $scope.levelOffset;
-      var load = function() {
+      var index = ++$scope.level;
+      if (!$scope.challenges[index]) {
+        $scope.endGame();
+      } else {
         var challenge = $scope.challenges[index];
         $scope.challenge = challenge.content;
         $scope.timeLimit = challenge.timeLimit;
-      }
-      if (!$scope.challenges[index]) {
-        return $scope.loadBatch().then(load);
-      } else {
-        return $q(function(resolve) {
-          load();
-          resolve();
-        });
+        $scope.playing = true;
+        $scope.startTimer();
       }
     };
 
@@ -85,9 +59,21 @@ angular.module('app.game', [])
       $scope.playing = false;
     };
 
-    Socket.on('game:start', function() {
+    $scope.endGame = function() {
+      Socket.emit('player:gameComplete', {
+        score: $scope.score
+      });
+      $scope.playing = false;
+    }
+
+    Socket.on('game:start', function(data) {
       console.log('game:start event received');
-      $scope.startGame();
+      $scope.challenges = data.challenges;
+      $scope.loadChallenge();
+    })
+    Socket.on('game:proceed', function(data) {
+      console.log('game:proceed event received');
+      $scope.loadChallenge();
     })
     Socket.on('game:win', function() {
       console.log('game:win event received');
