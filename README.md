@@ -1,5 +1,4 @@
-# SpeedCoder
-## The multiplayer version of Homerow Apollo
+# SpeedCoder - The Multiplayer Version of Homerow Apollo
 
 ![SpeedCoder](./client/assets/home.png "SpeedCoder")
 
