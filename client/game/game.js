@@ -139,7 +139,10 @@ angular.module('app.game', [])
           return null;
         }
         if ($scope.opponentPosition > stream.column()) {
-          return 'opponent';
+          if ($scope.playerPosition < $scope.opponentPosition) {
+            return 'opponent-ahead';
+          }
+          return 'opponent-behind';
         }
         return null;
       }
