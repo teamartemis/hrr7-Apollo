@@ -64,7 +64,7 @@ angular.module('app.game', [])
       }
     };
 
-    $scope.startTimer = function(timeLimit){
+    $scope.startTimer = function(timeLimit) {
       $scope.timer = $interval(function() {
         $scope.timeLimit--;
 
@@ -145,6 +145,11 @@ angular.module('app.game', [])
     $scope.codemirrorLoaded = function(_editor){
       $scope._editor = _editor;
       _editor.on('beforeChange', $scope.playerInputChange);
+      _editor.on('cursorActivity', function(editor) {
+        if (editor.doc.getCursor().ch !== $scope.playerSolution.length) {
+          editor.doc.setCursor({line: 0, ch: $scope.playerSolution.length});
+        }
+      });
     };
 
     /*
