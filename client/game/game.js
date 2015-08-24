@@ -67,16 +67,10 @@ angular.module('app.game', [])
     $scope.startTimer = function(timeLimit){
       $scope.timer = $interval(function() {
         $scope.timeLimit--;
-        // if the timer runs out before a successful submit, the player loses
+
         if ($scope.timeLimit === 0) {
-          $scope.editorOptions = {readOnly: "nocursor"};
           $interval.cancel($scope.timer);
-
-          //$scope.gameOver = true;
-          // Send a timeup event
-          Socket.emit('player:timeup', {
-
-          });
+          Socket.emit('player:timeup');
           $scope.playing = false;
         }
       }, 1000);
