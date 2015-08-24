@@ -45,9 +45,6 @@ angular.module('app.game', [])
 
     $scope.loadChallenge = function() {
       $scope.showMessage = false;
-      $scope.playerPosition = 0;
-      $scope.opponentPosition = 0;
-      $scope.playerSolution = [];
       var index = ++$scope.level - $scope.levelOffset;
       var load = function() {
         var challenge = $scope.challenges[index];
@@ -100,7 +97,9 @@ angular.module('app.game', [])
     });
     Socket.on('opponent:progress', function(data) {
       console.log('Received opponent progress from server: ', data);
-      $scope.setOpponentPosition(data.position);
+      if (data.level === $scope.level) {
+        $scope.setOpponentPosition(data.position);
+      }
     });
     Socket.on('disconnect', function() {
       console.log('Client has disconnected from the server');
