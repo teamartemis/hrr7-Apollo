@@ -23,8 +23,11 @@ module.exports = function(server) {
 
   // helpers
   var getOpponentSocket = function(socket, room) { // optional room parameter
-    room = socket.rooms[1] || room;
-    if( room === undefined ) return; // if no room, then no match is going on
+    room = room || socket.rooms[1];
+    if( room === undefined ) {
+      console.log('room undefined', socket.rooms);
+      return; // if no room, then no match is going on
+    }
 
     var opponentSocket;
     // this is an array of all clients in the room
@@ -110,6 +113,7 @@ module.exports = function(server) {
 
     // player is done with all levels
     socket.on('player:gameComplete', function(result) {
+      console.log('game complete from', socket.id);
       var player = players[socket.id];
       var opponent = players[getOpponentSocket(socket).id];
       player.gameComplete = true;
@@ -123,6 +127,7 @@ module.exports = function(server) {
     // player ran out of time
     socket.on('player:timeup', function() {
       // start both players on next level
+      console.log('tiem up from', socket.id);
       var player = players[socket.id];
       var opponent = players[getOpponentSocket(socket).id];
 
@@ -135,6 +140,7 @@ module.exports = function(server) {
 
     // disconnect
     socket.on('disconnect', function() {
+      console.log('disconnect from', socket.id);
       if( challenger === socket ) {
         challenger = null;
       }
