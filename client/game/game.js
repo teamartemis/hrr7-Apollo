@@ -45,9 +45,6 @@ angular.module('app.game', [])
 
     $scope.loadChallenge = function() {
       $scope.showMessage = false;
-      $scope.playerPosition = 0;
-      $scope.opponentPosition = 0;
-      $scope.playerSolution = [];
       var index = ++$scope.level - $scope.levelOffset;
       var load = function() {
         var challenge = $scope.challenges[index];
@@ -64,19 +61,13 @@ angular.module('app.game', [])
       }
     };
 
-    $scope.startTimer = function(timeLimit){
+    $scope.startTimer = function(timeLimit) {
       $scope.timer = $interval(function() {
         $scope.timeLimit--;
-        // if the timer runs out before a successful submit, the player loses
+
         if ($scope.timeLimit === 0) {
-          $scope.editorOptions = {readOnly: "nocursor"};
           $interval.cancel($scope.timer);
-
-          //$scope.gameOver = true;
-          // Send a timeup event
-          Socket.emit('player:timeup', {
-
-          });
+          Socket.emit('player:timeup');
           $scope.playing = false;
         }
       }, 1000);
@@ -106,7 +97,9 @@ angular.module('app.game', [])
     });
     Socket.on('opponent:progress', function(data) {
       console.log('Received opponent progress from server: ', data);
-      $scope.setOpponentPosition(data.position);
+      if (data.level === $scope.level) {
+        $scope.setOpponentPosition(data.position);
+      }
     });
     Socket.on('disconnect', function() {
       console.log('Client has disconnected from the server');
@@ -151,6 +144,11 @@ angular.module('app.game', [])
     $scope.codemirrorLoaded = function(_editor){
       $scope._editor = _editor;
       _editor.on('beforeChange', $scope.playerInputChange);
+      _editor.on('cursorActivity', function(editor) {
+        if (editor.doc.getCursor().ch !== $scope.playerSolution.length) {
+          editor.doc.setCursor({line: 0, ch: $scope.playerSolution.length});
+        }
+      });
     };
 
     /*
