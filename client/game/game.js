@@ -9,7 +9,7 @@ angular.module('app.game', [])
     };
 
     $scope.batch = 0;
-    $scope.level = -1;
+    $scope.level = 0;
     $scope.score = 0;
     $scope.challenge = '';
     $scope.timeLimit = 0;
@@ -27,7 +27,10 @@ angular.module('app.game', [])
     $scope.loadChallenge = function() {
       // Make sure timer is stopped
       $interval.cancel($scope.timer);
-      var index = ++$scope.level;
+      $scope.playerSolution = [];
+      $scope.playerPosition = 0;
+      $scope.opponentPosition = 0;
+      var index = $scope.level++;
       if (!$scope.challenges[index]) {
         $scope.endGame();
       } else {
@@ -73,7 +76,7 @@ angular.module('app.game', [])
     $scope.restart = function() {
       $scope.win = false;
       $scope.lose = false;
-      $scope.level = -1;
+      $scope.level = 0;
       $scope.playerSolution = [];
       Socket.emit('player:ready');
     }
