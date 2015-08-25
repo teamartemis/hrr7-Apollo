@@ -1,10 +1,10 @@
 <div ng-controller="gameController">
-  <div class="waiting" ng-if="!playing">
+  <div class="waiting" ng-if="!playing && !win && !lose">
     <p>Waiting...</p>
   </div>
-  <div class="gameOver" ng-if="gameOver"><p>GAME OVER</p></div>
-  <div class="gameWon" ng-if="gameWon"><p>YOU WIN</p></div>
-  <div class="playing" ng-if="playing">
+  <div class="gameLose" ng-if="lose"><p>YOU LOSE</p><button ng-click="restart()">Restart?</button></div>
+  <div class="gameWon" ng-if="win"><p>YOU WIN</p><button ng-click="restart()">Restart?</button></div>
+  <div class="playing" ng-if="playing && !win && !lose">
     <header class="game-header">
       <div>
         <p>Current Level</p>
