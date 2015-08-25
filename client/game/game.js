@@ -23,6 +23,8 @@ angular.module('app.game', [])
     $scope.playing = false;
 
     $scope.loadChallenge = function() {
+      // Make sure timer is stopped
+      $interval.cancel($scope.timer);
       var index = ++$scope.level;
       if (!$scope.challenges[index]) {
         $scope.endGame();
