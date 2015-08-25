@@ -21,6 +21,8 @@ angular.module('app.game', [])
     $scope.challenges = [];
     $scope.timer;
     $scope.playing = false;
+    $scope.win = false;
+    $scope.lose = false;
 
     $scope.loadChallenge = function() {
       // Make sure timer is stopped
@@ -68,6 +70,14 @@ angular.module('app.game', [])
       $scope.playing = false;
     }
 
+    $scope.restart = function() {
+      $scope.win = false;
+      $scope.lose = false;
+      $scope.level = -1;
+      $scope.playerSolution = [];
+      Socket.emit('player:ready');
+    }
+
     Socket.on('game:start', function(data) {
       console.log('game:start event received');
       $scope.challenges = data.challenges;
@@ -78,9 +88,13 @@ angular.module('app.game', [])
       $scope.loadChallenge();
     })
     Socket.on('game:win', function() {
+      //Display win state
+      $scope.win = true;
       console.log('game:win event received');
     });
     Socket.on('game:lose', function() {
+      //Display lose state
+      $scope.lose = true;
       console.log('game:lose event received');
     });
     Socket.on('opponent:progress', function(data) {
