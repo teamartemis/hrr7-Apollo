@@ -94,7 +94,7 @@ module.exports = function(server) {
         challenger.join(nextRoom);
         players[socket.id].room = players[challenger.id].room = nextRoom;
 
-        fetchChallenges(10, function(challenges) {
+        fetchChallenges(5, function(challenges) {
           console.log('randomized levels', challenges);
           io.to(nextRoom).emit('game:start', {
             challenges: challenges
@@ -171,4 +171,3 @@ module.exports = function(server) {
 
   return io;
 };
-
