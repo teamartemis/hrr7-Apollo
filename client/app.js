@@ -1,4 +1,4 @@
-angular.module('app', ['ui.router', 'app.game', 'app.leaderboard', 'app.setInitials', 'app.socket', 'ui.codemirror'])
+angular.module('app', ['ui.router', 'app.game', 'app.socket', 'ui.codemirror'])
 
 .config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider){
 
@@ -10,27 +10,9 @@ angular.module('app', ['ui.router', 'app.game', 'app.leaderboard', 'app.setIniti
     templateUrl: './game/game.html'
   };
 
-  var leaderboard = {
-    name: 'leaderboard',
-    url: '/leaderboard',
-    templateUrl: './leaderboard/leaderboard.html'
-  };
-
-  var setInitials = {
-    name: 'setInitials',
-    url: '/setInitials',
-    templateUrl: './leaderboard/setInitials.html'
-  };
-
-  $stateProvider
-    .state(game)
-    .state(leaderboard)
-    .state(setInitials)
-
+  $stateProvider.state(game);
 }])
 
 .run(['$state', function($state){
   $state.transitionTo('game');
 }]);
-
-
